@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*:focus {
+  outline: none;
+}
+
+body {
+  color: white;
+  background-color: #2d2c31;
+}
+
+#body::-webkit-scrollbar-track {
+  background-color: #2d2c31;
+}
+
+#body::-webkit-scrollbar {
+  width: 1.2rem;
+  background-color: #2d2c31;
+}
+
+#body::-webkit-scrollbar-thumb {
+  background-color: #17161b;
+}
