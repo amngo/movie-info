@@ -1,15 +1,15 @@
 import chroma from 'chroma-js';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import placeholder from '../assets/img/placeholder.png';
+import moviePlaceholder from '../assets/img/movie_placeholder.png';
 
 const MovieItem = ({
-  movie: { id, poster_path, title, vote_average, release_date }
+  movie: { id, poster_path, title, vote_average }
 }) => {
   const color = chroma.mix('red', 'green', vote_average / 10, 'hsl').toString();
   poster_path = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
-    : placeholder;
+    : moviePlaceholder;
 
   return (
     <Link to={`/movie/${id}`} className="">

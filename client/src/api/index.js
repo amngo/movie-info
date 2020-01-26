@@ -42,7 +42,8 @@ export const getMovies = async (endpoint, page = 1) => {
   const params = {
     api_key: API_KEY,
     language: 'en-US',
-    page
+    page,
+    region: 'US'
   };
   const { data: results } = await axios.get(
     `https://api.themoviedb.org/3${endpoint}`,

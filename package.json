@@ -4,8 +4,8 @@
   "description": "Weather Application made with React",
   "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "server": "nodemon index.js",
+    "start": "node server.js",
+    "server": "nodemon server.js",
     "client": "yarn --cwd ./client start",
     "install-client": "yarn --cwd ./client",
     "dev": "concurrently \"yarn server\" \"yarn client\"",
