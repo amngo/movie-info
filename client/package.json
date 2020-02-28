@@ -6,16 +6,40 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
-    "axios": "^0.19.2",
-    "chroma-js": "^2.1.0",
+    "ky": "^0.16.2",
     "query-string": "^6.10.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-icons": "^3.8.0",
+    "react-player": "^1.15.2",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.3.0",
-    "react-spring": "^8.0.27",
-    "react-tooltip": "^3.11.2"
+    "react-select": "^3.0.8",
+    "react-spring": "^8.0.27"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.jsx",
+      "!src/index.jsx",
+      "!src/api/*.js",
+      "!src/context/*.js",
+      "!src/helpers/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    },
+    "coverageReporters": [
+      "html",
+      "text"
+    ]
   },
   "scripts": {
     "start": "react-scripts start",

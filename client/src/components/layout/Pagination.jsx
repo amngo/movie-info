@@ -2,14 +2,14 @@ import queryString from 'query-string';
 import React, { useContext, useState } from 'react';
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa';
 import { withRouter } from 'react-router-dom';
-import { MovieContext } from '../../../context/movie-context';
+import { MediaContext } from 'context';
 
 const Pagination = ({ history, location: { pathname, search } }) => {
   const [page, setPage] = useState();
 
   const {
-    movies: { totalPages, currentPage, totalResults }
-  } = useContext(MovieContext);
+    media: { totalPages, currentPage }
+  } = useContext(MediaContext);
 
   const { q } = queryString.parse(search);
 
@@ -26,11 +26,8 @@ const Pagination = ({ history, location: { pathname, search } }) => {
   };
 
   return (
-    <div className="flex items-center text-xl">
-      <div className="w-1/3 mr-2 text-xs text-right">
-        ( {totalResults} results )
-      </div>
-      <div className="flex items-center justify-end w-2/3 text-xl">
+    <div className="flex items-center justify-center py-1" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+      <div className="flex items-center justify-end text-xl">
         <button
           disabled={currentPage === 1}
           className="p-2 hover:bg-movie-dark"
@@ -38,20 +35,20 @@ const Pagination = ({ history, location: { pathname, search } }) => {
         >
           <FaAngleLeft />
         </button>
-        <div className="flex items-center justify-center m-2 text-sm">
+        <div className="flex items-center justify-center text-xs">
           <input
             type="text"
-            className="w-1/3 px-2 py-1 mr-2 text-center bg-movie-dark"
+            className="w-1/3 px-2 py-1 mr-2 text-center"
             placeholder={currentPage}
-            maxLength='3'
+            maxLength="3"
             onChange={e => setPage(e.target.value)}
             onKeyPress={event =>
               event.key === 'Enter'
                 ? history.push(`${pathname}?${q ? `q=${q}&` : ''}page=${page}`)
                 : null
             }
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
           />
-
           <div>of {totalPages}</div>
         </div>
         <button

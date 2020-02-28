@@ -1,30 +1,47 @@
-import React, { useContext } from 'react';
-import Body from './components/layout/Body/Body';
-import Navbar from './components/layout/Navbar/Navbar';
+import React, { useContext, useEffect } from 'react';
+import { getLanguages, getMovieGenres, getTvGenres } from './api';
+import Body from './components/layout/Body';
+import Infobar from './components/layout/Infobar/Infobar';
+import { Navbar } from './components/layout/Navbar';
+import Pagination from './components/layout/Pagination';
 import Topbar from './components/layout/Topbar/Topbar';
-import { MovieContext } from './context/movie-context';
+import Loader from './components/Loader/Loader';
+import { MediaContext } from './context';
+import { genreToFilter } from './helpers';
 
 const App = () => {
-  const { movieImage } = useContext(MovieContext);
+  const { setMapping, mapping } = useContext(MediaContext);
 
-  const style = {
-    background: `url(https://image.tmdb.org/t/p/original${movieImage}) no-repeat center center fixed`,
-    backgroundSize: 'cover'
-  };
+  useEffect(() => {
+    let mounted = true;
+    const getData = async () => {
+      const [languages, movieGenres, tvGenres] = await Promise.all([getLanguages(), getMovieGenres(), getTvGenres()]);
+      if (mounted) setMapping({ languages, movieGenres, tvGenres, movieGenreFilter: genreToFilter(movieGenres), tvGenreFilter: genreToFilter(tvGenres) });
+    };
 
-  return (
-    <div className="flex w-full h-screen">
-      <Navbar />
-      <div className="w-full h-full" style={movieImage ? style : {}}>
-        <div
-          className="flex flex-col w-full h-full"
-          style={{ backgroundColor: 'rgba(23,22,27,0.50)' }}
-        >
-          <Topbar />
+    getData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [setMapping]);
+
+  return mapping ? (
+    <div className='flex h-screen tracking-wide' style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} data-testid='app'>
+      <div className='flex'>
+        <Navbar />
+      </div>
+      <div className='flex flex-col w-full h-full'>
+        <Topbar />
+        <div className='flex flex-col justify-between h-full overflow-y-hidden'>
+          <Infobar />
           <Body />
+          <Pagination />
         </div>
       </div>
     </div>
+  ) : (
+    <Loader />
   );
 };
 

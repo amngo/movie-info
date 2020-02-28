@@ -1,43 +1,51 @@
 import queryString from 'query-string';
 import React, { useContext, useEffect } from 'react';
-import { getMovies, searchMovies } from '../../api';
-import { MovieContext } from '../../context/movie-context';
+import { getMedia, searchMulti } from 'api';
+import { MediaContext } from 'context';
 import Loader from '../Loader/Loader';
-import Movies from '../Movies';
+import MediaList from '../MediaList';
 
-const Results = ({ location: { search }, endpoint }) => {
-  const { movies, setMovies } = useContext(MovieContext);
+const Results = ({ location: { search: searchString }, endpoint, mediaType }) => {
+  const { media, setMedia } = useContext(MediaContext);
   useEffect(() => {
-    let { page, q } = queryString.parse(search);
-    page = page ? parseInt(page) : 1;
+    const params = queryString.parse(searchString);
+    params.page = params.page ? parseInt(params.page) : 1;
+    const page = params.page;
     const getData = async () => {
       let data;
+      params.page = params.page * 2 - 1;
+      if (endpoint) data = await getMedia(endpoint, params);
+      else data = await searchMulti(params.q, params.page);
 
-      if (endpoint) data = await getMovies(endpoint, page);
-      else data = await searchMovies(q, page);
-
-      const { results, total_results, total_pages } = data;
-      setMovies({
+      const { results, total_results, total_pages, dates } = data;
+      setMedia({
         items: results,
         totalResults: total_results,
-        totalPages: total_pages,
-        currentPage: page
+        totalPages: Math.floor(total_pages / 2),
+        currentPage: page,
+        dates
       });
     };
     getData();
-    console.log('rendered');
 
     return () => {
-      setMovies({
+      setMedia({
         items: null,
         totalPages: null,
         currentPage: null,
-        totalResults: null
+        totalResults: null,
+        dates: null
       });
     };
-  }, [search, setMovies, endpoint]);
+  }, [searchString, setMedia, endpoint]);
 
-  return movies.items ? <Movies movies={movies.items} /> : <Loader />;
+  return media.items ? (
+    <div className='px-8 pt-4 pb-8'>
+      <MediaList media={media.items} currentPage={media.currentPage} mediaType={mediaType} />
+    </div>
+  ) : (
+    <Loader />
+  );
 };
 
 export default Results;

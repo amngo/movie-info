@@ -2,20 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
-import MovieProvider from './context/MovieProvider';
-import * as serviceWorker from './serviceWorker';
+import { MediaProvider } from './context';
 import './styles.css';
 
 ReactDOM.render(
   <Router>
-    <MovieProvider>
+    <MediaProvider>
       <App />
-    </MovieProvider>
+    </MediaProvider>
   </Router>,
   document.getElementById('root')
 );
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();

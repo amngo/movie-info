@@ -5,12 +5,12 @@ const NavbarItem = ({ item: { icon, url, name } }) => {
   return (
     <NavLink
       to={url}
-      exact
-      activeClassName="border-movie-blue text-movie-blue"
-      className="flex items-center px-6 py-2 text-sm border-l-4 border-transparent hover:text-movie-blue hover:border-movie-blue"
+      data-testid={url}
+      activeClassName='font-bold text-media-blue border-media-blue'
+      className='flex items-center py-2 border-r-4 border-transparent text-media-white-3 hover:border-media-blue'
     >
       {icon}
-      <div className="ml-4">{name}</div>
+      <span className='ml-3 text-xs'>{name}</span>
     </NavLink>
   );
 };

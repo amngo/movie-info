@@ -1,61 +1,59 @@
-import axios from 'axios';
+import ky from 'ky';
 const API_KEY = 'cbe75b16ea78cdf8eb9d59434a2e3626';
+const api = ky.create({ prefixUrl: 'https://api.themoviedb.org/3' });
 
-export const GENRE_MAP = {
-  28: 'Action',
-  12: 'Adventure',
-  16: 'Animation',
-  35: 'Comedy',
-  80: 'Crime',
-  99: 'Documentary',
-  18: 'Drama',
-  10751: 'Family',
-  14: 'Fantasy',
-  36: 'History',
-  27: 'Horror',
-  10402: 'Music',
-  9648: 'Mystery',
-  10749: 'Romance',
-  878: 'Science Fiction',
-  10770: 'TV Movie',
-  53: 'Thriller',
-  10752: 'War',
-  37: 'Western'
+export const getLanguages = async () => {
+  const params = {
+    api_key: API_KEY
+  };
+  const languages = {};
+  const result = await api.get('configuration/languages', { searchParams: params }).json();
+  result.forEach(({ iso_639_1, english_name }) => (languages[iso_639_1] = english_name));
+  return languages;
 };
 
-export const discoverMovies = async () => {
+export const getMovieGenres = async () => {
   const params = {
-    api_key: API_KEY,
-    language: 'en-US',
-    sort_by: 'popularity.desc'
+    api_key: API_KEY
   };
-  const {
-    data: { results }
-  } = await axios.get(`https://api.themoviedb.org/3/discover/movie`, {
-    params
-  });
+  const genres = {};
+  const { genres: items } = await api.get('genre/movie/list', { searchParams: params }).json();
+  items.forEach(({ id, name }) => (genres[id] = name));
+  return genres;
+};
+
+export const getTvGenres = async () => {
+  const params = {
+    api_key: API_KEY
+  };
+  const genres = {};
+  const { genres: items } = await api.get('genre/tv/list', { searchParams: params }).json();
+  items.forEach(({ id, name }) => (genres[id] = name));
+  return genres;
+};
+
+export const getMedia = async (endpoint, params = {}) => {
+  params = { api_key: API_KEY, region: 'US', ...params, primary_release_year: params.year };
+  delete params.year;
+  const [results1, results2] = await Promise.all([
+    api
+      .get(endpoint, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(endpoint, {
+        searchParams: { ...params, page: params.page + 1 }
+      })
+      .json()
+  ]);
+
+  const results = { ...results1, results: [...results1.results, ...results2.results] };
 
   return results;
 };
 
-export const getMovies = async (endpoint, page = 1) => {
-  const params = {
-    api_key: API_KEY,
-    language: 'en-US',
-    page,
-    region: 'US'
-  };
-  const { data: results } = await axios.get(
-    `https://api.themoviedb.org/3${endpoint}`,
-    {
-      params
-    }
-  );
-
-  return results;
-};
-
-export const searchMovies = async (query, page = 1) => {
+export const searchMulti = async (query, page = 1) => {
   const params = {
     api_key: API_KEY,
     language: 'en-US',
@@ -63,13 +61,20 @@ export const searchMovies = async (query, page = 1) => {
     page,
     include_adult: 'false'
   };
-  const { data: results } = await axios.get(
-    `https://api.themoviedb.org/3/search/movie`,
-    {
-      params
-    }
-  );
+  const results = await api
+    .get(`search/multi`, {
+      searchParams: params
+    })
+    .json();
+  return results;
+};
 
+export const getPerson = async id => {
+  const params = {
+    api_key: API_KEY
+  };
+
+  const results = await api.get(`person/${id}`, { searchParams: params }).json();
   return results;
 };
 
@@ -80,54 +85,141 @@ export const getMovie = async id => {
     include_image_language: 'null'
   };
 
-  //Get movie information
-  const { data } = await axios.get(`https://api.themoviedb.org/3/movie/${id}`, {
-    params
-  });
+  const [data, { backdrops }, { cast, crew }, { keywords }, recommendations, { results: items }, { results: videos }, social] = await Promise.all([
+    api
+      .get(`movie/${id}`, {
+        searchParams: params
+      })
+      .json(),
+    await api
+      .get(`movie/${id}/images`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`movie/${id}/credits`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`movie/${id}/keywords`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`movie/${id}/recommendations`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`movie/${id}/release_dates`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`movie/${id}/videos`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`movie/${id}/external_ids`, {
+        searchParams: params
+      })
+      .json()
+  ]);
 
-  //Get movie cover image
-  const {
-    data: { backdrops }
-  } = await axios.get(`https://api.themoviedb.org/3/movie/${id}/images`, {
-    params
-  });
-
-  //Get movie cast
-  const {
-    data: { cast }
-  } = await axios.get(`https://api.themoviedb.org/3/movie/${id}/credits`, {
-    params
-  });
-
-  //Get similar movies
-  const {
-    data: { results }
-  } = await axios.get(`https://api.themoviedb.org/3/movie/${id}/similar`, {
-    params
-  });
-
-  const similarMovies = results.slice(0, 5);
-
-  //Get certification
-  const {
-    data: { results: items }
-  } = await axios.get(
-    `https://api.themoviedb.org/3/movie/${id}/release_dates`,
-    {
-      params
-    }
-  );
-
-  let certification = null;
+  let certification,
+    trailer = null;
 
   for (let i = 0; i < items.length; i++) {
     if (items[i]['iso_3166_1'] === 'US') {
-      certification = items[i]['release_dates'][0].certification;
+      for (let j = 0; j < items[i]['release_dates'].length; j++) {
+        certification = items[i]['release_dates'][j].certification;
+        if (certification !== '') break;
+      }
+    }
+  }
+
+  for (let i = 0; i < videos.length; i++) {
+    if (videos[i]['type'] === 'Trailer' && videos[i]['site'] === 'YouTube') {
+      trailer = videos[i].key;
       break;
     }
   }
 
   certification = certification ? certification : 'NR';
 
-  return { ...data, backdrops, cast, similarMovies, certification };
+  return {
+    ...data,
+    backdrops,
+    cast,
+    crew,
+    recommendations,
+    certification,
+    keywords,
+    trailer,
+    social
+  };
+};
+
+export const getTv = async id => {
+  const params = {
+    api_key: API_KEY,
+    language: 'en-US',
+    include_image_language: 'null'
+  };
+
+  const [data, { backdrops }, { cast, crew }, { results: keywords }, similarMovies, { results: items }] = await Promise.all([
+    api
+      .get(`tv/${id}`, {
+        searchParams: params
+      })
+      .json(),
+    await api
+      .get(`tv/${id}/images`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`tv/${id}/credits`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`tv/${id}/keywords`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`tv/${id}/similar`, {
+        searchParams: params
+      })
+      .json(),
+    api
+      .get(`tv/${id}/content_ratings`, {
+        searchParams: params
+      })
+      .json()
+  ]);
+
+  let certification = null;
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i]['iso_3166_1'] === 'US') {
+      certification = items[i]['rating'];
+      break;
+    }
+  }
+
+  certification = certification ? certification : 'NR';
+
+  return {
+    ...data,
+    backdrops,
+    cast,
+    crew,
+    similarMovies,
+    certification,
+    keywords
+  };
 };
