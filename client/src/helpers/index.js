@@ -8,7 +8,7 @@ const comparator = (a, b) => {
   return 0;
 };
 
-export const genreToFilter = (genres) => {
+export const genreToFilter = genres => {
   const genreFilters = [];
   for (let key in genres) {
     genreFilters.push({ value: key, label: genres[key] });
